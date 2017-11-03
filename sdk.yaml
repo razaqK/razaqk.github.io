@@ -1,0 +1,212 @@
+swagger: '2.0'
+info:
+  version: '1.0'
+  title: Kongapay SDK
+  contact:
+    name: Kongapay Support
+    url: 'https://www.kongapay.com/'
+    email: support@kongapay.com
+  license:
+    name: Kongapay
+    url: 'https://www.kongapay.com/license/'
+  termsOfService: 'https://www.kongapay.com/terms/'
+  x-logo:
+    url: 'https://www.kongapay.com/img/logo@2x.png'
+    backgroundColor: '#0033A0'
+  description: |
+    # Introduction
+    The KongaPay Web Plugin is designed for use on the web.
+    This plugin allow merchants to receive payments from a KongaPay user.
+    This plugin will be implemented using HTML and Javascript.
+
+    # Requirement
+    Merchant must be signed up as a Merchant on KongaPay.
+    Click [here] (https://www.kongapay.com/merchant/register) to sign up.
+    When you sign up for an account, you are given your API key (test).
+    On meeting all requirement, (live) API key will be generated for you which can be view on our portal.
+
+    # Authentication
+    You authenticate to the
+    KongaPay by providing your secret key (test or live public) and source in the request header.
+
+    Never share your secret keys. Keep them guarded and secure.
+    The client-side authentication scheme uses one HTTP header named Api-Key.
+
+    # Note
+    Test and Live environment is based on the key supplied. Key with *test_* signifies test environment and *live_* signifies live environment
+
+    <!-- Kongapay-Inject: <security-definitions> -->
+
+    *Sample Header*
+    ```
+    {
+      "Api-Key": "<your public key>",
+      "Source": "web_sdk"
+    }
+    ```
+
+    # Implementation
+    1. Add Javascript Link to the page
+    On the page where the Merchant wants to receive payment the link to the Javascript file is to be added on the page.
+    It is preferable to have it close to the javascript object.
+    ```
+     https://www.kongapay.com/plugins/web-plugin/js/v2/kongapay.min.js
+    ```
+
+    2. Create Javascript Object
+    Javascript object is to built for the transaction.
+    ```
+            new KongaPay({
+                    id: "<button_container_id>", //optional
+                    buttonSize: 160,
+                    mKey: "<your public API key>",
+                    merchantName: "<Business Name>",
+                    description: "<More detail about the transaction (meta-data).>",
+                    callBack: "<Your call back url>",
+                    amount: "<Amount>",
+                    transactionReference: "<payment reference>",  //unique on every instance
+                    hash: "<hash_hmac('SHA512', {amount} '#'{transactionReference}'#'{merchant_id}, {api_key})>", //optional
+                    escrow: 1,
+                    qrCode: 1
+                });
+    ```
+
+host: api.kongapay.com
+basePath: /
+schemes:
+  - https
+x-servers:
+  - url: //api.kongapay.com/
+    description: Live Server
+produces:
+  - application/json
+consumes:
+  - application/json
+securityDefinitions:
+  ApiKey:
+    description: |
+      When you sign up for an account, you are given your API key.
+      To do so please follow this link: https://www.kongapay.com/merchant/register
+    name: Api-Key
+    type: apiKey
+    in: header
+security:
+  - ApiKey: []
+responses:
+  AccessForbidden:
+    description: 'Access forbidden, invalid API-KEY was used'
+    schema:
+      $ref: '#/definitions/Error'
+  NotFound:
+    description: Resource was not found
+    schema:
+      $ref: '#/definitions/Error'
+  Conflict:
+    description: Conflict
+    schema:
+      $ref: '#/definitions/Error'
+  InvalidDataError:
+    description: Invalid data was sent
+    schema:
+      $ref: '#/definitions/InvalidError'
+parameters:
+  resourceId:
+    name: id
+    in: path
+    description: The resource identifier string
+    type: string
+    required: true
+  hash:
+    name: hash
+    in: path
+    description: The token identifier string
+    type: string
+    required: true
+paths:
+  /3dsecure:
+    get:
+      tags:
+        - 3D Secure
+      summary: Retrieve a list of ThreeDSecure entries
+      responses:
+        '200':
+          description: A list was retrieved successfully
+          headers:
+            Rate-Limit-Limit:
+              description: The number of allowed requests in the current period
+              type: integer
+            Rate-Limit-Remaining:
+              description: The number of remaining requests in the current period
+              type: integer
+            Rate-Limit-Reset:
+              description: |
+                The date in format defined by [RFC 822](https://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1)
+                when the current period will reset
+              type: string
+            Pagination-Total:
+              description: Total items count
+              type: integer
+            Pagination-Limit:
+              description: Items per page limit
+              type: integer
+            Pagination-Offset:
+              description: Pagination offset
+              type: integer
+    post:
+      tags:
+        - 3D Secure
+      summary: Create a ThreeDSecure entry
+      description: |
+        Create a ThreeDSecure entry
+
+      responses:
+        '201':
+          description: ThreeDSecure entry was created
+          headers:
+            Rate-Limit-Limit:
+              description: The number of allowed requests in the current period
+              type: integer
+            Rate-Limit-Remaining:
+              description: The number of remaining requests in the current period
+              type: integer
+            Rate-Limit-Reset:
+              description: |
+                The date in format defined by [RFC 822](https://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.3.1)
+                when the current period will reset
+              type: string
+
+definitions:
+  ApiKey:
+    type: object
+    description: API secret Key.
+    properties:
+      id:
+        readOnly: true
+      description:
+        description: API key description
+        type: string
+      datetimeFormat:
+        description: Date time format
+        type: string
+        default: iso8601
+        enum:
+          - mysql
+          - iso8601
+  InvalidError:
+    allOf:
+      - $ref: '#/definitions/Error'
+      - type: object
+        properties:
+          details:
+            type: array
+            items:
+              type: string
+  Error:
+    type: object
+    properties:
+      status:
+        type: integer
+        minimum: 100
+        maximum: 600
+      error:
+        type: string

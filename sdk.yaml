@@ -21,7 +21,7 @@ info:
 
     # Requirement
     Merchant must be signed up as a Merchant on KongaPay.
-    Click [here] (https://www.kongapay.com/merchant/register) to sign up.
+    Click (https://www.kongapay.com/merchant/register) to sign up.
     When you sign up for an account, you are given your API key (test).
     On meeting all requirement, (live) API key will be generated for you which can be view on our portal.
 
@@ -122,7 +122,6 @@ parameters:
     description: The token identifier string
     type: string
     required: true
-paths:
 definitions:
   ApiKey:
     type: object
